@@ -857,7 +857,7 @@ def validate_variable_partitioning(model, config):
         ),
         config=config,
     )
-    check_variables_continuous(model, active_model_vars, config)
+    # check_variables_continuous(model, active_model_vars, config)
 
     first_stage_vars = ComponentSet(config.first_stage_variables) & active_model_vars
     second_stage_vars = ComponentSet(config.second_stage_variables) & active_model_vars
