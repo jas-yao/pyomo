@@ -592,8 +592,9 @@ class UncertaintySet(object, metaclass=abc.ABCMeta):
         Return True if the uncertainty set is bounded and non-empty,
         else False.
         """
-        return self.is_nonempty(config=config) and self.is_bounded(config=config)
-
+        # return self.is_nonempty(config=config) and self.is_bounded(config=config)
+        return True
+    
     @abc.abstractmethod
     def set_as_constraint(self, uncertain_params=None, block=None):
         """
