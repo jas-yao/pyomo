@@ -3115,6 +3115,22 @@ def add_decision_rule_constraints(model_data):
             # associated monomial with respect to the uncertain params
             dr_var_to_exponent_map[dr_var] = len(param_combo)
 
+        # non-anticipativity for multi-period models
+        if config.multiperiod:
+            nested_ss_vars = config.second_stage_variables
+            # check if second stage vars are nested
+            if not any(isinstance(prd, list) for prd in nested_ss_vars):
+                raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
+            num_periods = len(nested_ss_vars)
+            # go through each period
+            for prd in range(num_periods):
+                # check if ss_var is in a period
+                for prd_var in nested_ss_vars[prd]:
+                    if prd_var.name in eff_ss_var.name:
+                        # all dr_vars in later periods are zero
+                        for i in range(prd+2, num_periods+1):
+                            indexed_dr_var[i].fix(0)
+
         # declare constraint on model
         decision_rule_eqns[idx] = dr_expression - eff_ss_var == 0
         eff_ss_var_to_dr_eqn_map[eff_ss_var] = decision_rule_eqns[idx]
@@ -3142,6 +3158,30 @@ def enforce_dr_degree(working_blk, config, degree):
                 dr_var.fix(0)
             else:
                 dr_var.unfix()
+
+    if degree > 0:
+        effective_second_stage_vars = list(
+            working_blk.eff_ss_var_to_dr_eqn_map.keys()
+        )
+        indexed_dr_var_list = working_blk.first_stage.decision_rule_vars
+        second_stage_dr_var_zip = zip(effective_second_stage_vars, indexed_dr_var_list)
+        for idx, (eff_ss_var, indexed_dr_var) in enumerate(second_stage_dr_var_zip):
+            for dr_var in indexed_dr_var.values():
+                # non-anticipativity for multi-period models
+                if config.multiperiod:
+                    nested_ss_vars = config.second_stage_variables
+                    # check if second stage vars are nested
+                    if not any(isinstance(prd, list) for prd in nested_ss_vars):
+                        raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
+                    num_periods = len(nested_ss_vars)
+                    # go through each period
+                    for prd in range(num_periods):
+                        # check if ss_var is in a period
+                        for prd_var in nested_ss_vars[prd]:
+                            if prd_var.name in eff_ss_var.name:
+                                # all dr_vars in later periods are zero
+                                for i in range(prd+2, num_periods+1):
+                                    indexed_dr_var[i].fix(0)
 
 
 def load_final_solution(model_data, master_soln, original_user_var_partitioning):

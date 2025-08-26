@@ -432,6 +432,9 @@ class PyROS(object):
         return_soln.config = config
         return_soln.time = model_data.timing.get_total_time("main")
 
+        # add pyros solution
+        return_soln.model_data = pyros_soln
+
         # log termination-related messages
         config.progress_logger.info(return_soln.pyros_termination_condition.message)
         config.progress_logger.info("-" * self._LOG_LINE_LENGTH)

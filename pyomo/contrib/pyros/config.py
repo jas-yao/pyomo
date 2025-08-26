@@ -940,5 +940,20 @@ def pyros_config():
             visibility=1,
         ),
     )
+    CONFIG.declare(
+        "multiperiod",
+        ConfigValue(
+            default=False,
+            domain=bool,
+            doc=(
+                """
+                This is an advanced option.
+                Solve a multi-period model.
+                If `True` is chosen, then nested second-stage variables
+                and uncertain parameters are used.
+                """
+            ),
+        ),
+    )
 
     return CONFIG
