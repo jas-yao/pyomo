@@ -3117,10 +3117,10 @@ def add_decision_rule_constraints(model_data):
 
         # non-anticipativity for multi-period models
         if config.multiperiod:
-            nested_ss_vars = config.second_stage_variables
-            # check if second stage vars are nested
-            if not any(isinstance(prd, list) for prd in nested_ss_vars):
-                raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
+            nested_ss_vars = config.nested_second_stage_variables
+            # # check if second stage vars are nested
+            # if not any(isinstance(prd, list) for prd in nested_ss_vars):
+            #     raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
             num_periods = len(nested_ss_vars)
             # go through each period
             for prd in range(num_periods):
@@ -3169,10 +3169,10 @@ def enforce_dr_degree(working_blk, config, degree):
             for dr_var in indexed_dr_var.values():
                 # non-anticipativity for multi-period models
                 if config.multiperiod:
-                    nested_ss_vars = config.second_stage_variables
-                    # check if second stage vars are nested
-                    if not any(isinstance(prd, list) for prd in nested_ss_vars):
-                        raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
+                    nested_ss_vars = config.nested_second_stage_variables
+                    # # check if second stage vars are nested
+                    # if not any(isinstance(prd, list) for prd in nested_ss_vars):
+                    #     raise ValueError("Second stage variables must be nested for `multiperiod=True`.")
                     num_periods = len(nested_ss_vars)
                     # go through each period
                     for prd in range(num_periods):

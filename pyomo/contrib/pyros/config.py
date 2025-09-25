@@ -240,6 +240,35 @@ class InputDataStandardizer(object):
         return f"(iterable of) {alltypes_desc}"
 
 
+class MultistageInputDataStandardizer(object):
+    """
+    Standardizer for modeling objects representing multi-stage
+    variables or uncertain parameters. Standard form is a
+    list of lists of `cdatatype` objects.
+    """
+    def __init__(self, ctype, cdatatype):
+        self.ctype = ctype
+        self.cdatatype = cdatatype
+
+    def __call__(self, obj):
+        if isinstance(obj, self.ctype):
+            return [list(obj.values())]
+        if isinstance(obj, self.cdatatype):
+            return [[obj]]
+        if isinstance(obj, (list, tuple)):
+            base_std = InputDataStandardizer(self.ctype, self.cdatatype)
+            if all(isinstance(itm, (list, tuple)) for itm in obj):
+                ans = list()
+                for item in obj:
+                    ans.append(base_std(item))
+            else:
+                ans = [base_std(obj)]
+        else:
+            raise TypeError("Not supported")
+
+        return ans
+
+
 class SolverNotResolvable(PyomoException):
     """
     Exception type for failure to cast an object to a Pyomo solver.
@@ -955,5 +984,18 @@ def pyros_config():
             ),
         ),
     )
+    CONFIG.declare(
+        "nested_second_stage_variables",
+        ConfigValue(
+            default=[],
+            domain=MultistageInputDataStandardizer(Var, VarData),
+            doc=(
+                "A two-dimensional list for extending the second-stage "
+                "variables to multi-stage variables. Each list specifies "
+                "the variables adjusted in each stage."
+            )
+        )
+    )
+
 
     return CONFIG
