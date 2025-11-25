@@ -3127,9 +3127,16 @@ def add_decision_rule_constraints(model_data):
                 # check if ss_var is in a period
                 for prd_var in nested_ss_vars[prd]:
                     if prd_var.name in eff_ss_var.name:
+                        # get range of values to set to zero
+                        # assume that there have been no "certain parameters" removed in preprocessing
+                        # assume that the number of uncertain parameters per period is the same
+                        spacing = (len(indexed_dr_var)-1)/num_periods
+                        start = (prd + 1)*spacing + 1
+                        end = num_periods*spacing + 1
                         # all dr_vars in later periods are zero
-                        for i in range(prd+2, num_periods+1):
+                        for i in range(int(start), int(end)):
                             indexed_dr_var[i].fix(0)
+                        # indexed_dr_var.pprint()
 
         # declare constraint on model
         decision_rule_eqns[idx] = dr_expression - eff_ss_var == 0
@@ -3179,8 +3186,14 @@ def enforce_dr_degree(working_blk, config, degree):
                         # check if ss_var is in a period
                         for prd_var in nested_ss_vars[prd]:
                             if prd_var.name in eff_ss_var.name:
+                                # get range of values to set to zero
+                                # assume that there have been no "certain parameters" removed in preprocessing
+                                # assume that the number of uncertain parameters per period is the same
+                                spacing = (len(indexed_dr_var)-1)/num_periods
+                                start = (prd + 1)*spacing + 1
+                                end = num_periods*spacing + 1
                                 # all dr_vars in later periods are zero
-                                for i in range(prd+2, num_periods+1):
+                                for i in range(int(start), int(end)):
                                     indexed_dr_var[i].fix(0)
 
 
