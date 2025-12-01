@@ -961,7 +961,7 @@ class UncertaintySet(object, metaclass=abc.ABCMeta):
             uncertain_param_vars, self.dim
         )
 
-        parameter_bounds = self.parameter_bounds
+        parameter_bounds = self.valid_computed_parameter_bounds
         if not parameter_bounds:
             parameter_bounds = self._compute_exact_parameter_bounds(global_solver)
 
@@ -1021,7 +1021,7 @@ class UncertaintySet(object, metaclass=abc.ABCMeta):
                 a, b, rel_tol=PARAM_IS_CERTAIN_ABS_TOL, abs_tol=PARAM_IS_CERTAIN_REL_TOL
             )
 
-        param_bounds = self.parameter_bounds
+        param_bounds = self.valid_computed_parameter_bounds
         if not (param_bounds and self._PARAMETER_BOUNDS_EXACT):
             # we need the exact bounding box
             param_bounds = self._compute_exact_parameter_bounds(
