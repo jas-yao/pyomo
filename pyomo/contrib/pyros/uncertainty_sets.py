@@ -526,6 +526,28 @@ class UncertaintySet(object, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
+    @property
+    def valid_computed_parameter_bounds(self):
+        """
+        Bounds for the value of each uncertain parameter
+        that have been computed and/or validated in `validate`.
+
+        These will be automatically generated and stored
+        with every PyROS run.
+
+        Returns
+        -------
+        list[tuple[numbers.Real, numbers.Real]]
+            If the bounds can be calculated efficiently, then this list
+            should be of length ``self.dim`` and contain the
+            (lower, upper) bound pairs.
+            Otherwise, the list should be empty.
+        """
+        if not hasattr(self, '_valid_computed_parameter_bounds'):
+            return []
+
+        return self._valid_computed_parameter_bounds
+
     def _create_bounding_model(self):
         """
         Make uncertain parameter value bounding problems (optimize
