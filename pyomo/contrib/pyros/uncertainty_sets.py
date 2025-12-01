@@ -641,6 +641,12 @@ class UncertaintySet(object, metaclass=abc.ABCMeta):
                 "Computed coordinate value bounds are not all finite. "
                 f"Got bounds: {param_bounds_arr}"
             )
+        else:
+            # store the valid computed parameter bounds
+            # TODO Are there any issues with using FBBT bounds?
+            #      These may not be as tight as bounds found with
+            #      _compute_exact_parameter_bounds
+            self._valid_computed_parameter_bounds = param_bounds_arr
 
         return all_bounds_finite
 
