@@ -479,6 +479,17 @@ def construct_dr_polishing_problem(master_data):
     polishing_model.polishing_obj = Objective(
         expr=sum(sum(polishing_var.values()) for polishing_var in polishing_vars)
     )
+    # deactivate all constraints that do not involve decision rules
+    dr_vars = ComponentSet(generate_all_decision_rule_var_data_objects(nominal_polishing_block))
+    for con in polishing_model.component_data_objects(Constraint):
+        constraint_vars = ComponentSet(identify_variables(con.expr))
+        if not any(var in dr_vars for var in constraint_vars):
+            con.deactivate()
+
+    # fix second stage variables
+    for blk in polishing_model.scenarios.values():
+        for ss_var in blk.effective_var_partitioning.second_stage_variables:
+            ss_var.fix()
 
     return polishing_model
 
