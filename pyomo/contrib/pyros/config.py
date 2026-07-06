@@ -21,6 +21,7 @@ from pyomo.common.config import (
     InEnum,
     Path,
 )
+from pyomo.common.collections import ComponentMap
 from pyomo.common.deprecation import deprecation_warning
 from pyomo.common.errors import ApplicationError, PyomoException
 from pyomo.core.base import Var, VarData
@@ -901,5 +902,46 @@ def pyros_config():
             visibility=1,
         ),
     )
+
+    CONFIG.declare(
+        "multiperiod",
+        ConfigValue(
+            default=False,
+            domain=bool,
+            doc=(
+                """
+                This is an advanced option.
+                Solve a multi-period model.
+                If `True` is chosen, then variable stages and
+                and uncertain parameters stages are used.
+                """
+            ),
+        ),
+    )
+
+    CONFIG.declare(
+        "variable_stages",
+        ConfigValue(
+            default=None,
+            domain=ComponentMap,
+            doc=(
+                "A ComponentMap mapping each later stage variable to its "
+                "respective stage for enforcing nonanticapitivity."
+            )
+        )
+    )
+
+    CONFIG.declare(
+        "uncertain_parameter_stages",
+        ConfigValue(
+            default=None,
+            domain=ComponentMap,
+            doc=(
+                "A ComponentMap mapping each later stage uncertain parameter "
+                "to its respective stage for enforcing nonanticapitivity."
+            )
+        )
+    )
+
 
     return CONFIG
