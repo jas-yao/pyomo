@@ -3171,6 +3171,12 @@ def add_decision_rule_constraints(model_data):
         decision_rule_eqns[idx] = dr_expression - eff_ss_var == 0
         eff_ss_var_to_dr_eqn_map[eff_ss_var] = decision_rule_eqns[idx]
 
+    if config.multiperiod:
+        enforce_nonanticipativity(
+            working_blk=model_data.working_model,
+            config=config,
+        )
+
 
 def enforce_dr_degree(working_blk, config, degree):
     """
@@ -3180,7 +3186,7 @@ def enforce_dr_degree(working_blk, config, degree):
 
     Parameters
     ----------
-    blk : ScalarBlock
+    working_blk : ScalarBlock
         Working model, or master problem block.
     config : ConfigDict
         PyROS solver options.
@@ -3194,6 +3200,74 @@ def enforce_dr_degree(working_blk, config, degree):
                 dr_var.fix(0)
             else:
                 dr_var.unfix()
+
+    if config.multiperiod:
+        enforce_nonanticipativity(
+            working_blk=working_blk,
+            config=config,
+        )
+
+
+def enforce_nonanticipativity(working_blk, config):
+    """
+    Enforce decision rule nonanticipativity by fixing 
+    value of the appropriate subset of the decision
+    rule coefficients to 0.
+
+    Parameters
+    ----------
+    working_blk : ScalarBlock
+        Working model, or master problem block.
+    config : ConfigDict
+        PyROS solver options.
+    """
+
+    # get mapping of config components to working model
+    # compare var.name to create mapping...
+    config_var_to_wm = ComponentMap()
+    for config_var in config.variable_stages.keys():
+        for wm_var in working_blk.effective_var_partitioning.second_stage_variables:
+            if config_var.name in wm_var.name:
+                config_var_to_wm[config_var] = wm_var
+                break
+            else:
+                config_var_to_wm[config_var] = None
+
+    config_param_to_wm = ComponentMap()
+    for config_param in config.uncertain_parameter_stages.keys():
+        for wm_param in working_blk.uncertain_params:
+            if config_param.name in wm_param.name:
+                config_param_to_wm[config_param] = wm_param
+                break
+            else:
+                config_param_to_wm[config_param] = None
+    
+    # map working model variables/parameters to their stages
+    working_var_stages = ComponentMap(
+        (config_var_to_wm[var], stage)
+        for var, stage in config.variable_stages.items()
+    )
+
+    working_param_stages = ComponentMap(
+        (config_param_to_wm[param], stage)
+        for param, stage in config.uncertain_parameter_stages.items()
+    )
+
+    # iterate through decision rule expressions
+    for ss_var in working_blk.effective_var_partitioning.second_stage_variables:
+        dr_expr = get_dr_expression(working_blk, ss_var)
+        for dr_monomial in dr_expr.args:
+            if dr_monomial.is_expression_type():
+                # degree > 1 monomial expression of form
+                # (product of uncertain params) * dr variable
+                dr_var_in_term = dr_monomial.args[-1]
+
+                # go through all uncertain params and set dr_var=0
+                # if any param is at a later stage than the ss_var
+                for param in dr_monomial.args[:-1]:
+                    if working_param_stages[param] > working_var_stages[ss_var]:
+                        dr_var_in_term.fix(0)
+                        break
 
 
 def load_final_solution(model_data, master_soln, original_user_var_partitioning):
